@@ -137,40 +137,6 @@ module.exports.destroyListing = async (req, res) => {
   res.redirect("/listings");
 };
 
-
-
-
-// module.exports.createListing = async (req, res) => {
-//   try {
-    
-//     console.log("Incoming body:", req.body);
-
-//     // convert price to number (form sends string)
-//     if (req.body.listing && req.body.listing.price) {
-//       req.body.listing.price = Number(req.body.listing.price);
-//     }
-
-//     const newListing = new Listing(req.body.listing);
-//     newListing.owner = req.user._id;
-
-//     if (req.file) { // ✅ only set image if file exists
-//       newListing.image = {
-//         url: req.file.path,
-//         filename: req.file.filename,
-//       };
-//     }
-
-//     await newListing.save();
-//     req.flash("success", "New Listing Created!");
-//     res.redirect("/listings");
-//   } catch (err) {
-//     console.error("Error creating listing:", err);
-//     res.status(400).send("Something went wrong: " + err.message);
-//   }
-// };
-
-
-
 module.exports.renderEditForm = async (req, res) => {
     try {
         const { id } = req.params;
@@ -247,12 +213,4 @@ module.exports.destroyListing = async (req, res) => {
 };
 
 
-// module.exports.destroyListing = (async (req, res)=>{
-//     let { id } = req.params;
-//     let deletedListing = await Listing.findByIdAndDelete(id);
-   
-    
-//     console.log(deletedListing);
-//       req.flash("success", "Your List are deleted");
-//     res.redirect("/listings");
-// });
+
