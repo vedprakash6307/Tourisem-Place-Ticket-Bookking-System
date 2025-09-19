@@ -1,3 +1,9 @@
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
+
+
 const express = require("express");// requring to express
 const app = express(); //creating router for express
 const mongoose = require("mongoose");// Requiring mongoose for database document form in .js file
@@ -8,6 +14,7 @@ const wrapAsync =require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js");
 const Review = require("./models/review.js");
 const session = require("express-session");
+const MongoStore =require("connect-mongo");
 const listingRouter = require("./routes/listing.js");
 const reviewRouter =  require("./routes/review.js");
 const flash = require("connect-flash");
@@ -15,19 +22,21 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 const userRouter = require("./routes/user.js");
+
  
 const methodOverride = require("method-override");//Requiring method overriding for update data and delete data
 const user = require("./models/user.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/Hiper";//connect with database on the server 
-     main() //this is main function for initialization connect with database or not if where are error any code show error
+const dbUrl  =process.env.ATLASDB_URL;
+
+     main() //this is main fun
       .then(()=>{
         console.log("connect to db");
 }).catch((err)=>{
     console.log(err);
 });
 async function main(){ // async function are connnect with mongoose document
-    await mongoose.connect(MONGO_URL);
+    await mongoose.connect(dbUrl);
 }
 
 app.set("view engine", "ejs");//this is a setup view engine for ejs files aquiring in js files
@@ -37,8 +46,20 @@ app.use(methodOverride("_method"));//use this method method overriding code dale
 app.engine("ejs",ejsMate);//use this method aquiring ejsMate function 
 app.use(express.static(path.join(__dirname, "/public")));//use directory in file aquiring
 
+const store = MongoStore.create({
+    mongoUrl:dbUrl,
+    crypto:{
+        secret: process.env.SECRET,
+    },
+    touchAfter:24 * 3600,
+});
+store.on("error", () =>{
+    console.log("ERROR in MONGO SESSION STORE", err);
+});
+
 const sessionOptions ={
-    secret:"mysupersecretcode",
+    store,
+    secret: process.env.SECRET,
     resave: false,
     saveUninitialized:true,
     cookie:{
@@ -48,9 +69,9 @@ const sessionOptions ={
     },
 };
 
-app.get("/", (req, res)=>{ //creating a server root and send response in your screen
-    res.send("hi i am root");
-});
+// app.get("/", (req, res)=>{ //creating a server root and send response in your screen
+//     res.send("hi i am root");
+// });
 
  
 app.use(session(sessionOptions));
@@ -69,20 +90,9 @@ passport.deserializeUser(User.deserializeUser());
 app.use((req, res, next) => {
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
+    res.locals.currUser = req.user;
     next();
 });
-
-// app.get("/demouser" , async (req, res)=>{
-//     let fakeUser =  new user({
-//         email:"student@gmail.com",
-//         username : "delta-student"
-//     });
-//       let registeredUser = await User.register(fakeUser,"helloworld");
-//       res.send(registeredUser);
-// });
-
-
-
 
 
 app.use("/listings", listingRouter);
