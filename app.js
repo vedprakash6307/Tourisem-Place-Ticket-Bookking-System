@@ -90,7 +90,7 @@ app.use("/", userRouter);
 
 // ✅ Catch-all 404 handler (correct way)
 app.use((req, res, next) => {
-  next(new ExpressError("Page Not Found", 404));
+  next(new ExpressError(404,"Page Not Found"));
 });
 
 // Global error handler
