@@ -1,22 +1,36 @@
 const Listing = require("../models/listing");
 const fetch = require("node-fetch"); // For Node < 18. For Node 18+, fetch is global.
-
-const { cloudinary, storage  } = require("../cloudconfig"); 
-
+const { cloudinary, storage } = require("../cloudconfig");
 
 // Function to get coordinates from location + country
 async function getCoordinates(location, country) {
   const query = encodeURIComponent(`${location}, ${country}`);
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}`;
-  const response = await fetch(url);
-  const data = await response.json();
 
-  if (!data.length) {
-    // fallback coordinates (Delhi)
-    return [77.2090, 28.6139]; // [lng, lat]
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'MyListingApp/1.0 (your-email@example.com)', // REQUIRED by Nominatim
+        'Accept-Language': 'en'
+      }
+    });
+
+    if (!response.ok) {
+      console.error(`Nominatim request failed: ${response.status}`);
+      return [77.2090, 28.6139]; // fallback to Delhi
+    }
+
+    const data = await response.json();
+
+    if (!data.length) {
+      return [77.2090, 28.6139]; // fallback coordinates
+    }
+
+    return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+  } catch (err) {
+    console.error("Error fetching coordinates:", err);
+    return [77.2090, 28.6139]; // fallback
   }
-
-  return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
 }
 
 // Show all listings
@@ -64,11 +78,9 @@ module.exports.createListing = async (req, res) => {
       type: "Point",
       coordinates: coords, // [lng, lat]
     };
-    console.log(coords);
 
     const newListing = new Listing(listing);
     newListing.owner = req.user._id;
-    console.log(newListing);
 
     // Set image if uploaded
     if (req.file) {
@@ -99,59 +111,13 @@ module.exports.renderEditForm = async (req, res) => {
     }
     res.render("listings/edit.ejs", { listing });
   } catch (err) {
+    console.error(err);
     req.flash("error", "Something went wrong!");
     res.redirect("/listings");
   }
 };
 
 // Update listing
-module.exports.UpdateListing = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
-
-    // If new image uploaded
-    if (req.file) {
-      listing.image = {
-        url: req.file.path,
-        filename: req.file.filename,
-      };
-      await listing.save();
-    }
-
-    req.flash("success", "Listing updated successfully!");
-    res.redirect(`/listings/${id}`);
-  } catch (err) {
-    console.error(err);
-    req.flash("error", "Something went wrong!");
-    res.redirect(`/listings/${id}/edit`);
-  }
-};
-
-// Delete listing
-module.exports.destroyListing = async (req, res) => {
-  const { id } = req.params;
-  const deletedListing = await Listing.findByIdAndDelete(id);
-  console.log(deletedListing);
-  req.flash("success", "Your listing has been deleted!");
-  res.redirect("/listings");
-};
-
-module.exports.renderEditForm = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const listing = await Listing.findById(id);
-        if (!listing) {
-            req.flash("error", "Listing does not exist!");
-            return res.redirect("/listings");
-        }
-        res.render("listings/edit.ejs", { listing }); // ✅ listing exists
-    } catch (err) {
-        req.flash("error", "Something went wrong!");
-        return res.redirect("/listings");
-    }
-};
-
 module.exports.UpdateListing = async (req, res) => {
   try {
     const { id } = req.params;
@@ -189,7 +155,7 @@ module.exports.UpdateListing = async (req, res) => {
   }
 };
 
-
+// Delete listing
 module.exports.destroyListing = async (req, res) => {
   try {
     const { id } = req.params;
@@ -211,6 +177,3 @@ module.exports.destroyListing = async (req, res) => {
     res.redirect("/listings");
   }
 };
-
-
-
