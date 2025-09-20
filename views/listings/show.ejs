@@ -1,96 +1,261 @@
-<% layout("layouts/boilerplates") %>
+<% layout("/layouts/boilerplates") %>
+
+<!-- Custom Styles -->
+<style>
+/* Typography */
+.details {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Listing Card */
+.listing-card {
+  margin-bottom: 1.5rem;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.show-img {
+  height: 400px;          /* Map ke equal height */
+  width: 60%;             /* Page ke width ka 80% (kam ho jayegi) */
+  object-fit: cover;      /* Crop adjust */
+  border-radius: 15px;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;         /* Center align */
+}
+
+
+
+/* Listing Details Card */
+.details-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 15px;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+  max-width: 600px;
+}
+
+/* Buttons */
+.btns {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.btns .btn {
+  min-width: 100px;
+  margin: 5px;
+}
+
+/* Review Form */
+.review-form {
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+}
+textarea.form-control {
+  width: 100%;
+  resize: vertical;
+}
+
+/* All Reviews */
+.reviews-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center; /* centered */
+  margin-top: 15px;
+}
+.review-card {
+  flex: 0 1 250px;
+  border-radius: 10px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  padding: 10px;
+  background: #fff;
+  margin: auto;
+}
+.review-card .card-body {
+  padding: 10px;
+}
+.review-card button {
+  margin-top: 5px;
+}
+
+/* Map */
+#map {
+  width: 100%;
+  height: 300px;
+  border-radius: 15px;
+  margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .details-card,
+  #map,
+  .review-card {
+    width: 100% !important;
+  }
+  .reviews-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+/* Center the star rating field */
+.starability-slot {
+  margin: 0 auto;   /* center block */
+  display: inline-block; /* shrink to content */
+}
+
+.review-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 10px;
+  background: #fff;
+}
+.review-card h6 {
+  font-weight: bold;
+}
+
+
+</style>
 
 <div class="container mt-3 text-center">
-  <h3 class="details"><%= listing.title %></h3>
+<h3 class="details text-center"><%= listing.title %></h3>
+<img src="<%= listing.image?.url || '/images/default.jpg' %>" 
+     class="show-img"
+     alt="listing_image"
+     data-bs-toggle="modal" 
+     data-bs-target="#imageModal"
+     style="cursor: pointer;" />
 
-  <!-- Image with modal -->
-  <img src="<%= listing.image?.url || '/images/default.jpg' %>"
-       class="show-img"
-       alt="listing_image"
-       data-bs-toggle="modal"
-       data-bs-target="#imageModal" />
-
-  <div class="modal fade" id="imageModal" tabindex="-1">
-    <div class="modal-dialog modal-fullscreen">
-      <div class="modal-content bg-dark">
-        <div class="modal-header border-0">
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body d-flex justify-content-center align-items-center">
-          <img src="<%= listing.image?.url || '/images/default.jpg' %>"
-               style="width:100%; height:100vh; object-fit:contain;" />
-        </div>
+<!-- Fullscreen Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body d-flex justify-content-center align-items-center">
+        <img src="<%= listing.image?.url || '/images/default.jpg' %>" 
+             style="width: 100%; height: 100vh; object-fit: contain;" 
+             alt="fullscreen_image" />
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Details -->
+
+
+  <!-- Listing Details -->
   <div class="details-card">
     <p><i>@<%= listing.owner.username %></i></p>
     <p><%= listing.description %></p>
-    <p>₹<%= listing.price.toLocaleString("en-IN") %></p>
-    <p><%= listing.location %>, <%= listing.country %></p>
+    <p>&#8377;<%= listing.price.toLocaleString("en-IN") %></p>
+    <p><%= listing.location %></p>
+    <p><%= listing.country %></p>
   </div>
 
-  <!-- Edit/Delete -->
+  <!-- Edit/Delete Buttons -->
   <% if(currUser && String(listing.owner._id) === String(currUser._id)) { %>
-    <div class="btns">
+    <div class="btns offset-5">
       <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark">Edit</a>
-      <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="d-inline">
+      <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" style="display:inline-block;">
         <button class="btn btn-dark">Delete</button>
       </form>
     </div>
   <% } %>
+<!-- Toggle Comments Section -->
+<div class="text-center mb-3">
+  <a class="btn btn-sm btn-outline-dark" data-bs-toggle="collapse" href="#reviewsSection" role="button" aria-expanded="false" aria-controls="reviewsSection">
+    💬 Comments (<%= listing.reviews.length %>)
+  </a>
+</div>
 
-  <!-- Reviews -->
-  <div class="text-center mb-3">
-    <a class="btn btn-sm btn-outline-dark" data-bs-toggle="collapse" href="#reviewsSection">
-      💬 Comments (<%= listing.reviews.length %>)
-    </a>
-  </div>
+<!-- Collapsible Comments + Reviews -->
+<div class="collapse" id="reviewsSection">
+  <div class="card mx-auto mb-4" style="max-width: 600px; border-radius: 10px;">
+    <div class="card-body p-3">
 
-  <div class="collapse" id="reviewsSection">
-    <div class="card mx-auto mb-4" style="max-width:600px;">
-      <div class="card-body">
-        <% if(currUser) { %>
-          <form action="/listings/<%= listing._id %>/reviews" method="POST" class="mb-3">
-            <textarea name="review[comment]" rows="2" class="form-control mb-2" placeholder="Add a comment..." required></textarea>
+      <!-- Leave a Review -->
+      <% if(currUser) { %>
+        <form action="/listings/<%= listing._id %>/reviews" method="POST" class="mb-3">
+          <div class="d-flex align-items-center mb-2">
+            <fieldset class="starability-slot me-2">
+              <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]" value="0" checked />
+              <input type="radio" id="rate1" name="review[rating]" value="1" /><label for="rate1">1 star</label>
+              <input type="radio" id="rate2" name="review[rating]" value="2" /><label for="rate2">2 stars</label>
+              <input type="radio" id="rate3" name="review[rating]" value="3" /><label for="rate3">3 stars</label>
+              <input type="radio" id="rate4" name="review[rating]" value="4" /><label for="rate4">4 stars</label>
+              <input type="radio" id="rate5" name="review[rating]" value="5" /><label for="rate5">5 stars</label>
+            </fieldset>
             <button class="btn btn-sm btn-dark">Post</button>
-          </form>
-          <hr>
-        <% } %>
+          </div>
+          <textarea name="review[comment]" rows="2" class="form-control" placeholder="Add a comment..." required></textarea>
+        </form>
+        <hr>
+      <% } %>
 
-        <% if(listing.reviews.length > 0) { %>
-          <% listing.reviews.forEach(review => { %>
-            <div class="mb-3 border-bottom pb-2">
-              <strong>@<%= review.author.username %></strong>
-              <p><%= review.comment %></p>
+      <!-- All Reviews Compact -->
+      <% if(listing.reviews.length > 0) { %>
+        <% for(let review of listing.reviews) { %>
+          <div class="mb-3 border-bottom pb-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="mb-1">@<%= review.author.username %></h6>
               <% if(currUser && String(review.author._id) === String(currUser._id)) { %>
-                <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
+                <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST" class="d-inline">
                   <button class="btn btn-sm btn-outline-dark">Delete</button>
                 </form>
               <% } %>
             </div>
-          <% }) %>
-        <% } else { %>
-          <p class="text-muted">No comments yet.</p>
+            <p class="starability-result mb-1" data-rating="<%= review.rating %>"></p>
+            <p class="mb-0"><%= review.comment %></p>
+          </div>
         <% } %>
-      </div>
-    </div>
-  </div>
+      <% } else { %>
+        <p class="text-muted text-center">No comments yet.</p>
+      <% } %>
 
-  <!-- Map -->
-  <div class="mx-auto" style="max-width:600px;">
-    <h3>Listing Location</h3>
-    <div id="map"></div>
+    </div>
   </div>
 </div>
 
+
+  <!-- Map Section -->
+  <div class="mx-auto" style="max-width: 600px;">
+    <h3>Listing Location</h3>
+    <div id="map"></div>
+  </div>
+
+</div>
+
+<!-- Scripts -->
 <script>
-  const coords = <%- JSON.stringify((listing.geometry && listing.geometry.coordinates) || [77.2090, 28.6139]) %>;
+  const coords = <%- JSON.stringify(
+    (listing.geometry && listing.geometry.coordinates) || [77.2090, 28.6139]
+  ) %>;
   const listingCoords = [coords[1], coords[0]];
+  const listingTitle = "<%= listing.title %>";
+
   document.addEventListener("DOMContentLoaded", () => {
-    displayListingMap("map", listingCoords, "<%= listing.title %>");
+    displayListingMap("map", listingCoords, listingTitle);
   });
 </script>
 <script src="/js/map.js"></script>
+<script>
+  const toggleLink = document.querySelector('[href="#commentsSection"]');
+  const commentsSection = document.getElementById('commentsSection');
+
+  commentsSection.addEventListener('show.bs.collapse', () => {
+    toggleLink.textContent = "Hide Comments & Reviews";
+  });
+
+  commentsSection.addEventListener('hide.bs.collapse', () => {
+    toggleLink.textContent = "Show Comments & Reviews";
+  });
+</script>

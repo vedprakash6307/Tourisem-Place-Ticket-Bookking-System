@@ -1,68 +1,85 @@
-<% layout("/layouts/boilerplates") %>
+<% include("../layouts/boilerplates.ejs") %>
 
-<div class="container mt-4">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-
-      <!-- Card for Edit Form -->
-      <div class="card p-4 shadow-sm" style="border-radius: 10px; background-color: #ffffff;">
-        <h3 class="text-center mb-4">Edit Listing</h3>
-
-        <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" enctype="multipart/form-data" class="needs-validation" novalidate>
-          
-          <!-- Title -->
-          <div class="mb-3">
-            <label class="form-label">Title</label>
-            <input type="text" name="listing[title]" value="<%= listing.title %>" class="form-control" required>
-          </div>
-
-          <!-- Description -->
-          <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea name="listing[description]" class="form-control" required><%= listing.description %></textarea>
-          </div>
-
-          <!-- Current Image -->
-          <div class="mb-3">
-            <label class="form-label">Current Image</label><br>
-            <% if (listing.image) { %>
-              <img src="<%= listing.image.url %>" alt="Current Image" style="height: 150px; object-fit: cover; border-radius: 5px;">
-            <% } else { %>
-              <p>No image uploaded</p>
-            <% } %>
-          </div>
-
-          <!-- Replace Image -->
-          <div class="mb-3">
-            <label class="form-label">Replace Image</label>
-            <input type="file" name="listing[image]" class="form-control">
-          </div>
-
-          <!-- Price -->
-          <div class="mb-3">
-            <label class="form-label">Price</label>
-            <input type="number" name="listing[price]" value="<%= listing.price %>" class="form-control" required>
-          </div>
-
-          <!-- Country -->
-          <div class="mb-3">
-            <label class="form-label">Country</label>
-            <input type="text" name="listing[country]" value="<%= listing.country %>" class="form-control" required>
-          </div>
-
-          <!-- Location -->
-          <div class="mb-3">
-            <label class="form-label">Location</label>
-            <input type="text" name="listing[location]" value="<%= listing.location %>" class="form-control" required>
-          </div>
-
-          <div class="text-center">
-            <button type="submit" class="btn btn-dark">Update Listing</button>
-          </div>
-
-        </form>
-      </div>
-
+<div class="container mt-5">
+  <h3>Edit Listing</h3>
+  <form action="/listings/<%= listing._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+    <!-- Title -->
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="title" 
+        name="listing[title]" 
+        value="<%= listing.title %>" 
+        required
+      >
     </div>
-  </div>
+
+    <!-- Price -->
+    <div class="mb-3">
+      <label for="price" class="form-label">Price (₹)</label>
+      <input 
+        type="number" 
+        class="form-control" 
+        id="price" 
+        name="listing[price]" 
+        value="<%= listing.price %>" 
+        required
+      >
+    </div>
+
+    <!-- Description -->
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea 
+        class="form-control" 
+        id="description" 
+        name="listing[description]" 
+        rows="4" 
+        required
+      ><%= listing.description %></textarea>
+    </div>
+
+    <!-- Location -->
+    <div class="mb-3">
+      <label for="location" class="form-label">Location</label>
+      <input 
+        type="text" 
+        class="form-control" 
+        id="location" 
+        name="listing[location]" 
+        value="<%= listing.location %>" 
+        required
+      >
+    </div>
+
+    <!-- Existing Image -->
+    <% if (listing.image) { %>
+      <div class="mb-3">
+        <label class="form-label">Current Image</label><br>
+        <img 
+          src="<%= listing.image.url %>" 
+          alt="Listing Image" 
+          class="img-fluid rounded" 
+          style="max-height: 200px;"
+        >
+      </div>
+    <% } %>
+
+    <!-- Upload New Image -->
+    <div class="mb-3">
+      <label for="image" class="form-label">Upload New Image</label>
+      <input 
+        type="file" 
+        class="form-control" 
+        id="image" 
+        name="listing[image]"
+      >
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-primary">Update Listing</button>
+    <a href="/listings/<%= listing._id %>" class="btn btn-secondary">Cancel</a>
+  </form>
 </div>
